@@ -1,9 +1,9 @@
 //
-// public interface: SXOOP.patch is a bare-bones implementation of 'patch'.
-// it will use the patch output as given and does not try to do any kind of
+// public interface: SXOOP.read_patch is a bare-bones implementation of 'patch'.
+// it will use the diff output as given and does not try to do any kind of
 // matching if the lines do not match up. (it ignores the original content)
 // E.g. use `diff original-file new-file > diff.patch`
-// SXOOP.patch will read the output from a standard diff invocation and do a 
+// SXOOP.read_patch will read the output from a standard diff invocation and do a 
 // dumb patch based on the diff output.
 // This might be useful in environments where 'patch' is not available (windows)
 // See accompanying rpatch.js file for usage in Rhino.
