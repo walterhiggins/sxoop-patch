@@ -11,51 +11,23 @@
 // Walter Higgins 20120901
 //
 var SXOOP = SXOOP || {};
-SXOOP.patch = 
-{
-    //
-    // read takes a normal diff output text as a parameter
-    // and returns a number which is used to identify a patch.
-    // (pass the number to the apply function).
-    //
-    /* Number */ read: function(/* String */ diffOutput){},
-
-    //
-    // apply a patch to to a string. Returns a new string containing
-    // patched content.
-    //
-    apply: function(/* Number */ patchId, /* String */ oldText){}
-};
 //
-// private implementation
+// SXOOP.read_patch takes a normal diff output text as a parameter
+// and returns a function which, when invoked with original text as a parameter,
+// will return new text.
+// Example:
+// var patch = SXOOP.read_patch(diffOutput);
+// var newText = patch(originalText);
+//
+
+/* function */ SXOOP.read_patch = function(/* String */ diffOutput){};
+
+//
+// private implementation - nothing to see here.
+// [begin sausage manufacture in 3,2,1...]
 //
 (function(){
-    var patches = [];
-    var _read = function(/* String */ patchString){
-        var lines = patchString.split(/\n/);
-        var result = [];
-        var diff = null;
-        for (var i = 0;i < lines.length; i++){
-            var line = lines[i];
-            var isDiffHeader = line.match(/^([0-9,]+)([a,c,d])([0-9,]+)/);
-            if (isDiffHeader){
-                var ol = isDiffHeader[1].split(",");
-                var chg = isDiffHeader[2];
-                var nl = isDiffHeader[3].split(",");
-                diff = {ol: ol, op: chg, nl: nl,old_lines: [],new_lines: []};
-                result.push(diff);
-            }else{
-                if (diff && line.match(/^< /))
-                    diff.old_lines.push(line.substring(2));
-                if (diff && line.match(/^> /))
-                    diff.new_lines.push(line.substring(2));
-            }
-        }
-        patches.push(result);
-        return patches.length-1;
-    };
-    var _apply = function(/* Number */ patchId, /* String */ oldText){
-        var patch = patches[patchId];
+    var _apply = function(/* object[] */ patch, /* String */ oldText){
         var oldTextLines = oldText.split(/\n/);
         var result = oldText.split(/\n/);
         for (var i = 0;i < patch.length; i++)
@@ -83,6 +55,29 @@ SXOOP.patch =
         }
         return result.join("\n");
     };
-    SXOOP.patch.read = _read;
-    SXOOP.patch.apply = _apply;
+    var _read = function(/* String */ patchString){
+        var lines = patchString.split(/\n/);
+        var result = [];
+        var diff = null;
+        for (var i = 0;i < lines.length; i++){
+            var line = lines[i];
+            var isDiffHeader = line.match(/^([0-9,]+)([a,c,d])([0-9,]+)/);
+            if (isDiffHeader){
+                var ol = isDiffHeader[1].split(",");
+                var chg = isDiffHeader[2];
+                var nl = isDiffHeader[3].split(",");
+                diff = {ol: ol, op: chg, nl: nl,old_lines: [],new_lines: []};
+                result.push(diff);
+            }else{
+                if (diff && line.match(/^< /))
+                    diff.old_lines.push(line.substring(2));
+                if (diff && line.match(/^> /))
+                    diff.new_lines.push(line.substring(2));
+            }
+        }
+        return function(originalText){
+            return _apply(result,originalText);
+        }
+    };
+    SXOOP.read_patch = _read;
 }());
